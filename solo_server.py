@@ -62,18 +62,16 @@ def plot_histogram(csv_path: str, column: str, bins: int = 10) -> str:
 
     return output_path
 
-# MySQL 데이터베이스를 조회하는 새로운 도구 추가
 @mcp.tool()
-def query_db(table_name: str, column_name: str) -> dict:
+def query_smu_notices_by_keyword(keyword: str) -> dict:
     """
-    데이터베이스에서 특정 테이블의 지정된 열(column)을 조회하여 통계 정보를 반환하는 도구.
+    'smu_notices' 테이블에서 'title' 컬럼에 특정 키워드를 포함하는 행을 조회하여 결과를 반환하는 도구.
     
     Args:
-        table_name (str): 조회할 테이블 이름.
-        column_name (str): 조회할 컬럼 이름.
+        keyword (str): 'title' 컬럼에서 찾을 키워드.
         
     Returns:
-        dict: 지정된 컬럼에 대한 통계 정보를 반환.
+        dict: 키워드가 포함된 'title' 컬럼을 가진 행들 반환.
     """
     # DB 연결 설정
     DB_HOST = 'oneteam-db.chigywqq0qt3.ap-northeast-2.rds.amazonaws.com'
@@ -93,18 +91,17 @@ def query_db(table_name: str, column_name: str) -> dict:
         )
         cursor = conn.cursor()
 
-        # 쿼리 작성 및 실행
-        query = f"SELECT {column_name} FROM {table_name}"
-        cursor.execute(query)
+        # 쿼리 작성: 'title' 컬럼에서 키워드를 포함하는 행을 찾는 쿼리
+        query = f"SELECT * FROM smu_notices WHERE title LIKE %s"
+        cursor.execute(query, ('%' + keyword + '%',))
         
         # 결과를 DataFrame으로 변환
         data = cursor.fetchall()
-        df = pd.DataFrame(data, columns=[column_name])
+        column_names = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(data, columns=column_names)
 
-        # 통계 정보 계산
-        summary_stats = df[column_name].describe().to_dict()
-
-        return summary_stats
+        # 결과 반환
+        return df.to_dict(orient='records')
     
     except pymysql.MySQLError as e:
         return {"error": f"Database error: {e}"}
