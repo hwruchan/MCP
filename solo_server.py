@@ -24,46 +24,6 @@ def describe_column(csv_path: str, column: str) -> dict:
         raise ValueError(f"Column '{column}' not found in CSV.")
     return df[column].describe().to_dict()
 
-@mcp.tool()
-def query_smu_notices_by_keyword(keyword: str) -> dict:
-    """
-    'smu_notices' 테이블에서 'title' 컬럼에 특정 키워드를 포함하는 행을 조회하여 결과를 반환하는 도구.
-    
-    Args:
-        keyword (str): 'title' 컬럼에서 찾을 키워드.
-        
-        dict: 키워드가 포함된 'title' 컬럼을 가진 행들 반환.
-    """
-    # DB 연결 설정
-    DB_HOST = 'oneteam-db.chigywqq0qt3.ap-northeast-2.rds.amazonaws.com'
-    DB_USER = 'admin'
-    DB_PASSWORD = 'Oneteam2025!'
-    DB_NAME = 'oneteam_DB'
-    DB_PORT = 3306
-
-    # MySQL 연결
-    conn = pymysql.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            database=DB_NAME,
-            port=DB_PORT
-        )
-    cursor = conn.cursor()
-
-        # 쿼리 작성: 'title' 컬럼에서 키워드를 포함하는 행을 찾는 쿼리
-    query = f"SELECT * FROM smu_notices WHERE title LIKE %s"
-    cursor.execute(query, ('%' + keyword + '%',))
-        
-        # 결과를 DataFrame으로 변환
-    data = cursor.fetchall()
-    column_names = [desc[0] for desc in cursor.description]
-    df = pd.DataFrame(data, columns=column_names)
-
-        # 결과 반환
-    return df.to_dict(orient='records')
-    
-
 
 # 데이터베이스와 통합된 기본 프롬프트
 @mcp.prompt()
@@ -82,3 +42,4 @@ def default_prompt(message: str) -> list[base.Message]:
 # FastMCP 서버 실행
 if __name__ == "__main__":
     mcp.run(transport="stdio")
+
