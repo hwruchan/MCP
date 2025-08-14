@@ -2,65 +2,10 @@ import pymysql
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.prompts import base
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # FastMCP 서버 생성
 mcp = FastMCP("smuchat")
 
-# 기존 도구들
-@mcp.tool()
-def describe_column(csv_path: str, column: str) -> dict:
-    """
-    Get summary statistics (count, mean, std, min, max, etc.) for a specific column in a CSV file.
-
-    Args:
-        csv_path (str): The file path to the CSV file.
-        column (str): The name of the column to compute statistics for.
-
-    Returns:
-        dict: A dictionary containing summary statistics of the specified column.
-    """
-    df = pd.read_csv(csv_path)
-    if column not in df.columns:
-        raise ValueError(f"Column '{column}' not found in CSV.")
-    return df[column].describe().to_dict()
-
-@mcp.tool()
-def plot_histogram(csv_path: str, column: str, bins: int = 10) -> str:
-    """
-    Generate and save a density histogram for a specific column in a CSV file.
-
-    Args:
-        csv_path (str): The file path to the CSV file.
-        column (str): The name of the column to visualize.
-        bins (int, optional): Number of histogram bins. Defaults to 10.
-
-    Returns:
-        str: The file path to the saved density histogram image.
-    """
-    df = pd.read_csv(csv_path)
-    if column not in df.columns:
-        raise ValueError(f"Column '{column}' not found in CSV.")
-
-    plt.figure(figsize=(8, 6))
-    sns.histplot(
-        df[column].dropna(),
-        bins=bins,
-        kde=True,
-        stat="density",
-        edgecolor="black",
-        alpha=0.6,
-    )
-    plt.xlabel(column)
-    plt.ylabel("Density")
-    plt.title(f"Density Histogram of {column}")
-
-    output_path = f"{column}_density_hist.png"
-    plt.savefig(output_path)
-    plt.close()
-
-    return output_path
 
 @mcp.tool()
 def query_smu_notices_by_keyword(keyword: str) -> dict:
@@ -170,3 +115,4 @@ def default_prompt(message: str) -> list[base.Message]:
 # FastMCP 서버 실행
 if __name__ == "__main__":
     mcp.run(transport="stdio")
+
